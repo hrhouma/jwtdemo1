@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JWT Authentication</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        async function generateToken() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/user/generateToken', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const token = await response.text();
+                    console.log('Generated Token:', token);
+                    sessionStorage.setItem('jwtToken', token); // Use sessionStorage
+                    alert('Token generated successfully:\n' + token); // Show the token in an alert
+                } else {
+                    const errorText = await response.text();
+                    alert('Invalid credentials: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error generating token:', error);
+                alert('An error occurred while generating the token.');
+            }
+        }
+
+        async function validateToken() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (!token) {
+                alert('No token available. Please generate a token first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/user/validateToken', {
+                    method: 'GET',
+                    headers: {
+                        'EMAIL': token // Using 'EMAIL' header
+                    }
+                });
+
+                const message = await response.text();
+                alert(response.ok ? 'Validation successful: ' + message : 'Validation failed: ' + message);
+            } catch (error) {
+                console.error('Error validating token:', error);
+                alert('An error occurred while validating the token.');
+            }
+        }
+
+        function clearToken() {
+            sessionStorage.removeItem('jwtToken'); // Clear the token from storage
+            alert('Token cleared.');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>JWT Token Management</h1>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" class="form-control" value="admin"> <!-- Default username -->
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" class="form-control">
+        </div>
+        <button onclick="generateToken()" class="btn btn-primary">Generate Token</button>
+        <button onclick="validateToken()" class="btn btn-success">Validate Token</button>
+        <button onclick="clearToken()" class="btn btn-danger">Clear Token</button>
+    </div>
+</body>
+</html>
